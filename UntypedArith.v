@@ -308,6 +308,132 @@ unfold stuck. split.
   + inversion H.
 Qed.
 
+Lemma stuck_subterm_nat : forall t,
+stuck t -> stuck (tsucc t) /\ stuck (tpred t) /\ stuck (tiszero t).
+Proof.
+intros. split.
+- induction t.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      inversion H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H. unfold not in H2.
+      destruct H2.
+      left. apply NV_Zero. inversion H0.
+  + unfold stuck. split.
+    * unfold stuck in H. destruct H.
+      unfold normal_form. unfold not. intro.
+      destruct H1. inversion H1; subst.
+      inversion H3.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst. inversion H2.
+      inversion H0.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      inversion H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst. inversion H2.
+      inversion H0.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold normal_form in H. unfold not in H.
+      destruct H.
+      exists t1'. apply H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold not in H1.
+      destruct H1. left. apply H2.
+      inversion H0.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold normal_form in H. unfold not in H.
+      destruct H.
+      exists t1'. apply H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold not in H1.
+      destruct H1. left. apply H2.
+      inversion H0.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold normal_form in H. unfold not in H.
+      destruct H.
+      exists t1'. apply H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold not in H1.
+      destruct H1. left. apply H2.
+      inversion H0.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold normal_form in H. unfold not in H.
+      destruct H.
+      exists t1'. apply H2.
+    * unfold not. intro.
+      destruct H0.
+      inversion H0; subst.
+      unfold stuck in H. destruct H.
+      unfold not in H1.
+      destruct H1. left. apply H2.
+      inversion H0.
+- split. induction t.
+  + unfold stuck. split.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0. left. apply NV_Zero.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0.
+      left. apply NV_Zero.
+  + unfold stuck. split.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0. right. apply BV_True.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0.
+      right. apply BV_True.
+  + unfold stuck. split.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0. right. apply BV_False.
+    * unfold stuck in H. destruct H.
+      unfold not in H0.
+      destruct H0.
+      right. apply BV_False.
+  + unfold stuck. split.
+    * unfold normal_form. unfold not. intro.
+      destruct H0. induction x.
+      inversion H0; subst.
+      destruct H. unfold not in H1.
+      destruct H1.
+      left. apply NV_Succ. apply H2.
+      inversion H0; subst. inversion H2.
+      inversion H0; subst. inversion H2.
+      inversion H0; subst. inversion H2; subst.
+      Abort.
+
+
+
 Inductive big_eval : term -> term -> Prop :=
 | B_Value : forall t, value t -> big_eval t t
 | B_IfTrue : forall t1 t2 t3 v2,
