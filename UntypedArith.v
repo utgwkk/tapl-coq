@@ -242,6 +242,57 @@ intros. induction H.
   apply IHmeval1. apply IHmeval2.
 Qed.
 
+Fixpoint size (t : term) : nat :=
+match t with
+| tzero => 1
+| ttrue => 1
+| tfalse => 1
+| tsucc t => 1 + size t
+| tpred t => 1 + size t
+| tiszero t => 1 + size t
+| tif t1 t2 t3 => 1 + size t1 + size t2 + size t3
+end.
+
+Require Import Coq.omega.Omega.
+
+Lemma eval_decrease_size : forall t t',
+t --> t' -> size t > size t'.
+Proof.
+intros.
+induction H; simpl; omega.
+Qed.
+
+Lemma meval_decrease_size : forall t t',
+t -->* t' -> size t >= size t'.
+Proof.
+intros. induction H.
+- apply eval_decrease_size in H. omega.
+- omega.
+- omega.
+Qed.
+
+(* 3.5.12 *)
+Theorem eval_termination :
+forall t, exists t', (normal_form eval t' /\ t -->* t').
+Proof.
+intros.
+induction t.
+- exists tzero. split.
+  + unfold normal_form. unfold not. intros.
+    destruct H. inversion H.
+  + apply ME_Refl.
+- exists ttrue; split.
+  + unfold normal_form. unfold not. intros.
+    destruct H. inversion H.
+  + apply ME_Refl.
+- exists tfalse; split.
+  + unfold normal_form. unfold not. intros.
+    destruct H. inversion H.
+  + apply ME_Refl.
+- destruct IHt. destruct H.
+  exists (tsucc x). split.
+  induction x. Abort.
+
 Definition stuck t := normal_form eval t /\ ~ (nv t \/ bv t).
 
 Fact stuck_term : exists t, stuck t.
