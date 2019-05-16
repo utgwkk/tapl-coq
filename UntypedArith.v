@@ -65,9 +65,11 @@ induction H.
   inversion H0; subst. exists t1'. apply H2.
 Qed.
 
+Definition value t := nv t \/ bv t.
+
 (* 3.5.7 *)
 Theorem value_is_nf : forall t,
-nv t \/ bv t -> normal_form eval t.
+value t -> normal_form eval t.
 Proof.
 intros. destruct H.
 - apply nv_is_nf. apply H.
@@ -95,10 +97,14 @@ destruct H.
 inversion H; subst. inversion H0. inversion H0.
 Qed.
 
+Definition deterministic {X:Type} (R:relation X) :=
+forall x y z, R x y -> R x z -> y = z.
+
 (* 3.5.4, 3.5.14 *)
-Theorem eval_deterministic : forall t t' t'',
-t --> t' -> t --> t'' -> t' = t''.
+Theorem eval_deterministic :
+forall t t' t'', t --> t' -> t --> t'' -> t' = t''.
 Proof.
+unfold deterministic.
 intros.
 generalize dependent t''.
 induction H; intros; inversion H0; subst.
@@ -175,6 +181,7 @@ intros. split.
   + apply meval'_transitive with (y := t2). apply IHmeval1. apply IHmeval2.
 Qed.
 
+(* 3.5.11 *)
 Theorem meval_deterministic : forall t1 t2 t3,
 t1 -->* t2 -> t1 -->* t3 -> normal_form eval t2 -> normal_form eval t3 -> t2 = t3.
 Proof.
@@ -187,9 +194,10 @@ induction H.
     apply H. apply H0.
   + destruct H2. exists t2. apply H.
   + induction H3.
-    * apply eval_deterministic with (t' := t0) in H.
-      rewrite -> H in H3. destruct H1. exists t3. apply H3. apply H0.
-    * apply eval_deterministic with (t := t1). apply H. apply H0.
+    * apply eval_deterministic with (t' := t2) in H0.
+      rewrite <- H0 in H3.
+      destruct H1. exists t3. apply H3. apply H.
+    * apply eval_deterministic with (t' := t0) in H. symmetry. apply H. apply H0.
     * apply eval_deterministic with (t' := t0) in H. rewrite <- H in H1.
       destruct H1. exists t3. apply H3. apply H0.
 - induction H0.
@@ -248,3 +256,81 @@ unfold stuck. split.
   + inversion H; subst. inversion H1.
   + inversion H.
 Qed.
+
+Inductive big_eval : term -> term -> Prop :=
+| B_Value : forall t, value t -> big_eval t t
+| B_IfTrue : forall t1 t2 t3 v2,
+value v2 -> big_eval t1 ttrue -> big_eval t2 v2 -> big_eval (tif t1 t2 t3) v2
+| B_IfFalse : forall t1 t2 t3 v3,
+value v3 -> big_eval t1 tfalse -> big_eval t3 v3 -> big_eval (tif t1 t2 t3) v3
+| B_Succ : forall t1 nv1,
+nv nv1 -> big_eval t1 nv1 -> big_eval (tsucc t1) (tsucc nv1)
+| B_PredZero : forall t1,
+big_eval t1 tzero -> big_eval (tpred t1) tzero
+| B_PredSucc : forall t1 nv1,
+nv nv1 -> big_eval t1 (tsucc nv1) -> big_eval (tpred t1) nv1
+| B_IsZeroZero : forall t1,
+big_eval t1 tzero -> big_eval (tiszero t1) ttrue
+| B_IsZeroSucc : forall t1 nv1,
+nv nv1 -> big_eval t1 (tsucc nv1) -> big_eval (tiszero t1) (tfalse)
+.
+
+Notation "t ==> v" := (big_eval t v) (at level 60).
+
+Lemma eval_value_big_eval : forall t v,
+value v -> t --> v -> t ==> v.
+Proof.
+intros. induction H0.
+- apply B_IfTrue.
+  + apply H.
+  + apply B_Value. right. apply BV_True.
+  + apply B_Value. apply H.
+- apply B_IfFalse.
+  + apply H.
+  + apply B_Value. right. apply BV_False.
+  + apply B_Value. apply H.
+- inversion H; inversion H1.
+- apply B_Succ. inversion H. inversion H1; subst. apply H3. inversion H1.
+  inversion H. inversion H1; subst.
+apply or_introl with (B := bv t1') in H3. apply IHeval in H3. apply H3. inversion H1.
+- apply B_PredZero. apply B_Value. left. apply NV_Zero.
+- apply B_PredSucc. apply H0. apply B_Succ. apply H0. apply B_Value. apply H.
+- destruct H; inversion H.
+- apply B_IsZeroZero. apply B_Value. left. apply NV_Zero.
+- apply B_IsZeroSucc with (nv1 := t). apply H0.
+  apply B_Succ. apply H0. apply B_Value. left. apply H0.
+- destruct H. inversion H. inversion H.
+Qed.
+
+Theorem big_eval_deterministic : forall t t' t'',
+t ==> t' -> t ==> t'' -> value t' -> value t'' -> t' = t''.
+Proof.
+intros.
+induction H; intros.
+- induction H0.
+  + reflexivity.
+  + inversion H1; inversion H3.
+  + inversion H1; inversion H3.
+  + inversion H1; subst. inversion H4; subst.
+    apply or_introl with (B := bv t1) in H6. apply IHbig_eval in H6.
+    rewrite -> H6. reflexivity. apply H6. left. apply H0. inversion H4.
+  + inversion H0; subst. inversion H; inversion H4.
+    inversion H; inversion H6.
+    inversion H; inversion H6.
+    inversion H; inversion H4.
+    inversion H; inversion H5.
+  + inversion H; inversion H4.
+  + inversion H; inversion H3.
+  + inversion H; inversion H4.
+- Abort.
+
+Lemma meval_value_big_eval : forall t v,
+t -->* v -> value v -> t ==> v.
+Proof.
+intros.
+apply meval_iff_meval' in H.
+induction H.
+- apply eval_value_big_eval.
+  apply H0. apply H.
+- apply B_Value. apply H0.
+- Abort.
