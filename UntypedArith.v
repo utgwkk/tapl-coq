@@ -312,7 +312,13 @@ unfold stuck. split.
   + inversion H.
 Qed.
 
-Lemma nonvalue_is_stuck : ~ (nv t /
+Lemma nonvalue_nf_is_stuck : forall t, normal_form eval t -> ~ (nv t \/ bv t) -> stuck t.
+Proof.
+  intros.
+  unfold stuck. split.
+  - apply H.
+  - apply H0.
+Qed.
 
 Lemma stuck_subterm_succ : forall t,
     stuck t -> stuck (tsucc t).
@@ -392,7 +398,8 @@ Proof.
   - inversion H. destruct H1.
     right. apply BV_False.
   - destruct H.
-    apply IHt0.
+    apply IHt0. apply nonvalue_nf_is_stuck.
+    Abort.
 
 Lemma stuck_subterm_iszero : forall t,
     stuck t -> stuck (tiszero t).
