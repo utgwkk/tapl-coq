@@ -262,8 +262,6 @@ match t with
 | UntypedArith.tif t1 t2 t3 => tif (conv t1) (conv t2) (conv t3)
 end.
 
-Print conv.
-
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
 stuck t <-> (conv t) --> twrong.
 intros. split; intro.
@@ -274,6 +272,5 @@ intros. split; intro.
     destruct H1. right. apply UntypedArith.BV_True.
   + inversion H. unfold not in H1.
     destruct H1. right. apply UntypedArith.BV_False.
-  + 
-
-
+  + inversion H. unfold not in H1.
+    apply stuck_subterm_succ in H.
