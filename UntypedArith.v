@@ -312,7 +312,9 @@ unfold stuck. split.
   + inversion H.
 Qed.
 
-Lemma stuck_succ : forall t,
+Lemma nonvalue_is_stuck : ~ (nv t /
+
+Lemma stuck_subterm_succ : forall t,
     stuck t -> stuck (tsucc t).
 Proof.
   intros.
@@ -378,7 +380,7 @@ Proof.
       * inversion H0.
 Qed.
 
-Lemma stuck_subterm_succ : forall t,
+Lemma stuck_succ : forall t,
 stuck (tsucc t) -> stuck t.
 Proof.
   intros.
@@ -389,18 +391,8 @@ Proof.
     right. apply BV_True.
   - inversion H. destruct H1.
     right. apply BV_False.
-  - apply IHt0. destruct H.
-    split.
-    + intro. destruct H1.
-      destruct H.
-      exists (tsucc x).
-      apply E_Succ. apply H1.
-    + intro.
-      destruct H0.
-      destruct H1.
-      * left. apply NV_Succ. apply H0.
-      * inversion H0; subst.
-Abort.        
+  - destruct H.
+    apply IHt0.
 
 Lemma stuck_subterm_iszero : forall t,
     stuck t -> stuck (tiszero t).
