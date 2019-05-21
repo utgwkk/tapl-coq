@@ -153,9 +153,6 @@ Inductive meval' : term -> term -> Prop :=
 eval t1 t2 -> meval' t2 t3 -> meval' t1 t3
 .
 
-Definition transitive {X:Type} (R:relation X) : Prop :=
-forall x y z, R x y -> R y z -> R x z.
-
 Notation "t1 ~~>* t2" := (meval' t1 t2) (at level 60).
 
 Lemma meval'_transitive : transitive meval'.
