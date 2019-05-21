@@ -355,17 +355,126 @@ match t with
 | UntypedArith.tif t1 t2 t3 => tif (conv t1) (conv t2) (conv t3)
 end.
 
-
-
-Theorem stuck_if_go_wrong : forall t t',
+Lemma stuck_if_go_wrong : forall t t',
 t -w-> twrong -> conv t' = t -> normal_form UntypedArith.eval t' -> stuck t'.
 Proof.
 intros. generalize dependent t'.
 induction H.
 - intros. split.
   + apply H1.
-    + intro.
-      Abort.
+  + intro.
+    destruct H.
+    inversion H; subst; inversion H0.
+    inversion H; subst; inversion H0.
+- intros. split.
+  + apply H1.
+  + intro. destruct H.
+    * inversion H; subst; inversion H0.
+    * inversion H; subst; inversion H0.
+- intros. split.
+  + apply H1.
+  + intro. destruct H2.
+    * inversion H2; subst; inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + apply H1.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      simpl in H0. inversion H0.
+      simpl in H0. inversion H0.
+      apply IHeval in H5. destruct H5.
+      destruct H5. left. assumption.
+      apply UntypedArith.nv_is_nf in H3. assumption.
+    * inversion H2; subst.
+      inversion H0; subst. inversion H0.
+- intros. split.
+  + apply H1.
+  + intro. destruct H.
+    * inversion H; subst.
+      inversion H0.
+      inversion H0.
+    * inversion H; subst.
+      inversion H0.
+      inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      inversion H0. inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H.
+    * inversion H; subst; inversion H0.
+    * inversion H; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst; inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst; inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst; inversion H0.
+    * inversion H2; subst; inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+      inversion H3; subst.
+      inversion H; subst.
+      inversion H4.
+      inversion H; subst.
+      inversion H5.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+- intros. split.
+  + assumption.
+  + intro. destruct H2.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+    * inversion H2; subst.
+      inversion H0.
+      inversion H0.
+Qed.
+
+Theorem go_wrong_if_stuck : forall t t',
+stuck t' -> conv t' = t -> t -w-> twrong.
+Proof.
+intros.
+induction t'.
+- destruct H.
+  destruct H1. left. apply UntypedArith.NV_Zero.
+- destruct H.
+  destruct H1. right. apply UntypedArith.BV_True.
+- destruct H.
+  destruct H1. right. apply UntypedArith.BV_False.
+Abort.
 
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
 stuck t <-> (conv t) -w->* twrong.
