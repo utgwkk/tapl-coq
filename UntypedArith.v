@@ -153,6 +153,9 @@ Inductive meval' : term -> term -> Prop :=
 eval t1 t2 -> meval' t2 t3 -> meval' t1 t3
 .
 
+Definition transitive {X:Type} (R:relation X) : Prop :=
+forall x y z, R x y -> R y z -> R x z.
+
 Notation "t1 ~~>* t2" := (meval' t1 t2) (at level 60).
 
 Lemma meval'_transitive : transitive meval'.
@@ -273,23 +276,41 @@ Qed.
 Theorem eval_termination :
 forall t, exists t', (normal_form eval t' /\ t -->* t').
 Proof.
-intros.
-induction t.
+intros. induction t.
 - exists tzero. split.
-  + unfold normal_form. unfold not. intros.
-    destruct H. inversion H.
+  + intro. destruct H. inversion H.
   + apply ME_Refl.
-- exists ttrue; split.
-  + unfold normal_form. unfold not. intros.
-    destruct H. inversion H.
+- exists ttrue. split.
+  + intro. destruct H. inversion H.
   + apply ME_Refl.
-- exists tfalse; split.
-  + unfold normal_form. unfold not. intros.
-    destruct H. inversion H.
+- exists tfalse. split.
+  + intro. destruct H. inversion H.
   + apply ME_Refl.
 - destruct IHt. destruct H.
   exists (tsucc x). split.
-  induction x. Abort.
+  + intro. destruct H1. inversion H1; subst.
+    destruct H. exists t1'. assumption.
+  + apply meval_subterm_num. assumption.
+- destruct IHt. destruct H.
+  destruct x.
+  + exists tzero. split.
+    assumption.
+    apply meval_subterm_num in H0.
+    destruct H0. destruct H1.
+    apply ME_Trans with (t2 := tpred tzero).
+    apply H1. apply ME_Eval. apply E_PredZero.
+  + exists (tpred ttrue). split.
+    intro. destruct H1. inversion H1; subst. inversion H3.
+    apply meval_subterm_num in H0.
+    destruct H0. destruct H1. apply H1.
+  + exists (tpred tfalse). split.
+    intro. destruct H1. inversion H1; subst. inversion H3.
+    apply meval_subterm_num in H0.
+    destruct H0. destruct H1. apply H1.
+  + exists x. split.
+    intro. destruct H1. destruct H.
+    exists (tsucc x0). apply E_Succ. assumption.
+    Abort.
 
 Definition stuck t := normal_form eval t /\ ~ (nv t \/ bv t).
 
@@ -657,6 +678,59 @@ apply or_introl with (B := bv t1') in H3. apply IHeval in H3. apply H3. inversio
 - destruct H. inversion H. inversion H.
 Qed.
 
+Lemma nv_big_eval_nv : forall v v',
+nv v -> v ==> v' -> nv v'.
+Proof.
+intros. inversion H0; subst; try assumption.
+- inversion H.
+- inversion H.
+- apply NV_Succ. assumption.
+- apply NV_Zero.
+- inversion H.
+- inversion H.
+Qed.
+
+Lemma value_big_eval_value : forall v v',
+value v -> v ==> v' -> value v'.
+Proof.
+intros. inversion H0; subst; try assumption.
+- left. apply NV_Succ. assumption.
+- left. apply NV_Zero.
+- left. assumption.
+- right. apply BV_True.
+- right. apply BV_False.
+Qed.
+
+Lemma big_eval_transitive : transitive big_eval.
+Proof.
+unfold transitive. intros.
+generalize dependent z.
+induction H.
+- intros. assumption.
+- intros. apply B_IfTrue.
+  eapply value_big_eval_value.
+  apply H. assumption. assumption. apply IHbig_eval2 in H2.
+  assumption.
+- intros. apply B_IfFalse.
+  eapply value_big_eval_value.
+  apply H. assumption. assumption. apply IHbig_eval2 in H2.
+  assumption.
+- intros. inversion H1; subst.
+  apply B_Succ. assumption. assumption.
+  apply IHbig_eval in H4. apply B_Succ. assumption. assumption.
+- intros. inversion H0; subst.
+  apply B_PredZero. assumption.
+- intros. apply B_PredSucc.
+  eapply nv_big_eval_nv. apply H. assumption.
+  apply B_Succ in H1. apply IHbig_eval in H1.
+  assumption.
+  eapply nv_big_eval_nv. apply H. assumption.
+- intros. inversion H0; subst.
+  apply B_IsZeroZero. assumption.
+- intros. inversion H1; subst.
+  eapply B_IsZeroSucc. apply H. assumption.
+Qed.
+
 Theorem big_eval_deterministic : forall t t' t'',
 t ==> t' -> t ==> t'' -> value t' -> value t'' -> t' = t''.
 Proof.
@@ -680,12 +754,12 @@ induction H; intros.
 - Abort.
 
 Lemma meval_value_big_eval : forall t v,
-t -->* v -> value v -> t ==> v.
+value v -> t -->* v -> t ==> v.
 Proof.
 intros.
-apply meval_iff_meval' in H.
-induction H.
+apply meval_iff_meval' in H0.
+induction H0.
 - apply eval_value_big_eval.
-  apply H0. apply H.
-- apply B_Value. apply H0.
+  assumption. assumption.
+- apply B_Value. assumption.
 - Abort.
