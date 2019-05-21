@@ -474,7 +474,7 @@ induction t'.
   destruct H1. right. apply UntypedArith.BV_True.
 - destruct H.
   destruct H1. right. apply UntypedArith.BV_False.
-Abort.
+- destruct H. Abort.
 
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
 stuck t <-> (conv t) -w->* twrong.
@@ -486,4 +486,4 @@ intros. split; intro.
     destruct H1. right. apply UntypedArith.BV_True.
   + inversion H.
     destruct H1. right. apply UntypedArith.BV_False.
-  + inversion H.
+  + inversion H. Abort.
