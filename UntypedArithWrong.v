@@ -1,9 +1,5 @@
+Require Export ReductionSystem.
 Require Import UntypedArith.
-
-Definition relation (X:Type) := X -> X -> Prop.
-
-Definition normal_form {X:Type} (R:relation X) (t:X) : Prop :=
-~ exists t', R t t'.
 
 Inductive term : Type :=
 | tzero : term
@@ -362,15 +358,26 @@ match t with
 | UntypedArith.tif t1 t2 t3 => tif (conv t1) (conv t2) (conv t3)
 end.
 
+
+
+Theorem stuck_if_go_wrong : forall t t',
+t -w-> twrong -> conv t' = t -> normal_form UntypedArith.eval t' -> stuck t'.
+Proof.
+intros. generalize dependent t'.
+induction H.
+- intros. split.
+  + apply H1.
+    + intro.
+      Abort.
+
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
-stuck t <-> (conv t) -w-> twrong.
+stuck t <-> (conv t) -w->* twrong.
 intros. split; intro.
 - induction t.
-  + inversion H. unfold not in H1.
+  + inversion H.
     destruct H1. left. apply UntypedArith.NV_Zero.
-  + inversion H. unfold not in H1.
+  + inversion H.
     destruct H1. right. apply UntypedArith.BV_True.
-  + inversion H. unfold not in H1.
+  + inversion H.
     destruct H1. right. apply UntypedArith.BV_False.
-  + inversion H. unfold not in H1.
-    apply stuck_subterm_succ in H.
+  + inversion H.
