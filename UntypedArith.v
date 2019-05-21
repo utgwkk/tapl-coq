@@ -731,27 +731,52 @@ induction H.
   eapply B_IsZeroSucc. apply H. assumption.
 Qed.
 
-Theorem big_eval_deterministic : forall t t' t'',
-t ==> t' -> t ==> t'' -> value t' -> value t'' -> t' = t''.
+Lemma big_eval_value_value : forall t t',
+t ==> t' -> value t -> value t' -> t = t'.
 Proof.
 intros.
-induction H; intros.
-- induction H0.
-  + reflexivity.
-  + inversion H1; inversion H3.
-  + inversion H1; inversion H3.
-  + inversion H1; subst. inversion H4; subst.
-    apply or_introl with (B := bv t1) in H6. apply IHbig_eval in H6.
-    rewrite -> H6. reflexivity. apply H6. left. apply H0. inversion H4.
-  + inversion H0; subst. inversion H; inversion H4.
-    inversion H; inversion H6.
-    inversion H; inversion H6.
-    inversion H; inversion H4.
-    inversion H; inversion H5.
-  + inversion H; inversion H4.
-  + inversion H; inversion H3.
-  + inversion H; inversion H4.
-- Abort.
+induction H.
+- reflexivity.
+- inversion H0; inversion H4.
+- inversion H0; inversion H4.
+- destruct H0.
+  inversion H0; subst.
+  assert (value t1). left. assumption.
+  apply IHbig_eval in H3. rewrite -> H3. reflexivity.
+  left. inversion H; subst.
+  apply NV_Zero.
+  apply NV_Succ. assumption.
+  inversion H0.
+- inversion H0; inversion H2.
+- inversion H0. inversion H3.
+  inversion H3.
+- inversion H0; inversion H2.
+- inversion H0; inversion H3.
+Qed.
+
+Lemma big_eval_to_value : forall t t',
+t ==> t' -> value t'.
+Proof.
+intros.
+induction H; try assumption.
+- left. apply NV_Succ. assumption.
+- left. assumption.
+- right. apply BV_True.
+- right. apply BV_False.
+Qed.
+
+Theorem big_eval_deterministic : forall t t' t'',
+t ==> t' -> t ==> t'' -> t' = t''.
+Proof.
+intros.
+generalize dependent t''.
+induction H.
+- intros. assert (t ==> t''). assumption.
+  apply value_big_eval_value in H0.
+  apply big_eval_value_value. assumption. assumption. assumption.
+  assumption.
+- intros. induction H0.
+  + Abort.
 
 Lemma meval_value_big_eval : forall t v,
 value v -> t -->* v -> t ==> v.
