@@ -67,7 +67,7 @@ forall t1, badnat t1 -> eval (tpred t1) twrong
 forall t1, badnat t1 -> eval (tiszero t1) twrong
 .
 
-Notation "t1 --> t2" := (eval t1 t2) (at level 60).
+Notation "t1 -w-> t2" := (eval t1 t2) (at level 60).
 
 Lemma bv_is_nf : forall t,
 bv t -> normal_form eval t.
@@ -126,22 +126,122 @@ inversion H; subst. destruct H0. inversion H1.
 destruct H0. inversion H0.
 Qed.
 
-(* 3.5.4, 3.5.14 *)
-Theorem eval_deterministic :
-forall t t' t'', t --> t' -> t --> t'' -> t' = t''.
+Lemma badnat_is_nf : forall t,
+badnat t -> normal_form eval t.
+Proof.
+intros.
+destruct H.
+- apply bv_is_nf. apply H.
+- intro. destruct H. inversion H.
+Qed.
+
+Lemma badbool_is_nf : forall t,
+badbool t -> normal_form eval t.
 Proof.
 intros.
 induction H.
-- inversion H0; subst.
-  + reflexivity.
-  + inversion H4.
-  + inversion H4; subst. inversion H.
-- inversion H0; subst.
-  + reflexivity.
-  + inversion H4.
-  + inversion H4; subst. inversion H.
-- Admitted. 
+- apply nv_is_nf in H. apply H.
+- intro. destruct H. inversion H.
+Qed.
 
+(* 3.5.4, 3.5.14 *)
+Theorem eval_deterministic :
+forall t t' t'', t -w-> t' -> t -w-> t'' -> t' = t''.
+Proof.
+intros.
+generalize dependent t''.
+induction H; intros.
+- inversion H0; subst.
+  + reflexivity.
+  + inversion H4.
+  + inversion H4. inversion H.
+- inversion H0; subst.
+  + reflexivity.
+  + inversion H4.
+  + inversion H4. inversion H.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H.
+  + apply IHeval in H5. rewrite -> H5. reflexivity.
+  + inversion H5; subst.
+    inversion H1; subst.
+    inversion H. apply nv_is_nf in H1.
+    destruct H1. exists t1'. apply H.
+    inversion H.
+- inversion H0; subst.
+  + apply IHeval in H2. rewrite -> H2. reflexivity.
+  + inversion H2; subst.
+    inversion H1; subst; inversion H.
+    inversion H.
+- inversion H0; subst.
+  + reflexivity.
+  + inversion H1.
+  + inversion H1; subst. inversion H.
+- inversion H0; subst.
+  + reflexivity.
+  + inversion H2; subst.
+    apply nv_is_nf in H. destruct H.
+    exists t1'0. apply H3.
+    inversion H3; subst.
+    inversion H1; subst; inversion H.
+    inversion H.
+  + inversion H2; subst.
+    inversion H1.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H; subst.
+    apply nv_is_nf in H2. destruct H2.
+    exists t1'0. apply H3.
+    inversion H3; subst. inversion H1; subst.
+    inversion H2. inversion H2. inversion H2.
+  + apply IHeval in H2. rewrite -> H2. reflexivity.
+  + inversion H2; subst.
+    inversion H1; subst.
+    inversion H. inversion H. inversion H.
+- inversion H0; subst.
+  + reflexivity.
+  + inversion H1.
+  + inversion H1; subst. inversion H.
+- inversion H0; subst.
+  + reflexivity.
+  + apply NV_Succ in H.
+    apply nv_is_nf in H.
+    destruct H.
+    exists t1'. apply H2.
+  + inversion H2; subst.
+    inversion H1.
+- inversion H0; subst.
+  + inversion H.
+  + apply NV_Succ in H2.
+    apply nv_is_nf in H2. destruct H2.
+    exists t1'. apply H.
+  + apply IHeval in H2. rewrite -> H2. reflexivity.
+  + apply badnat_is_nf in H2.
+    destruct H2.
+    exists t1'. apply H.
+- inversion H0; subst.
+  + inversion H; subst. inversion H1.
+  + inversion H; subst. inversion H1.
+  + apply badbool_is_nf in H. destruct H.
+    exists t1'. apply H5.
+  + reflexivity.
+- inversion H0; subst.
+  + apply badnat_is_nf in H. destruct H.
+    exists t1'. apply H2.
+  + reflexivity.
+- inversion H0; subst.
+  + inversion H. inversion H1.
+  + inversion H; subst. inversion H1.
+  + apply badnat_is_nf in H. destruct H.
+    exists t1'. apply H2.
+  + reflexivity.
+- inversion H0; subst.
+  + inversion H. inversion H1.
+  + inversion H. inversion H1.
+  + apply badnat_is_nf in H. destruct H.
+    exists t1'. apply H2.
+  + reflexivity.
+Qed.
 
 Inductive meval : term -> term -> Prop :=
 | ME_Eval : forall t1 t2, eval t1 t2 -> meval t1 t2
@@ -150,7 +250,7 @@ Inductive meval : term -> term -> Prop :=
 meval t1 t2 -> meval t2 t3 -> meval t1 t3
 .
 
-Notation "t1 -->* t2" := (meval t1 t2) (at level 60).
+Notation "t1 -w->* t2" := (meval t1 t2) (at level 60).
 
 Inductive meval' : term -> term -> Prop :=
 | ME'_Eval : forall t1 t2, eval t1 t2 -> meval' t1 t2
@@ -162,7 +262,7 @@ eval t1 t2 -> meval' t2 t3 -> meval' t1 t3
 Definition transitive {X:Type} (R:relation X) : Prop :=
 forall x y z, R x y -> R y z -> R x z.
 
-Notation "t1 ~~>* t2" := (meval' t1 t2) (at level 60).
+Notation "t1 ~w~>* t2" := (meval' t1 t2) (at level 60).
 
 Lemma meval'_transitive : transitive meval'.
 Proof.
@@ -175,7 +275,7 @@ induction H.
 Qed.
 
 Lemma meval_iff_meval' : forall t1 t2,
-t1 ~~>* t2 <-> t1 -->* t2.
+t1 ~w~>* t2 <-> t1 -w->* t2.
 Proof.
 intros. split.
 - intros. induction H.
@@ -190,7 +290,7 @@ Qed.
 
 (* 3.5.11 *)
 Theorem meval_deterministic : forall t1 t2 t3,
-t1 -->* t2 -> t1 -->* t3 -> normal_form eval t2 -> normal_form eval t3 -> t2 = t3.
+t1 -w->* t2 -> t1 -w->* t3 -> normal_form eval t2 -> normal_form eval t3 -> t2 = t3.
 Proof.
 intros.
 apply meval_iff_meval' in H.
@@ -221,7 +321,7 @@ induction H.
 Qed.
 
 Lemma meval_subterm_num : forall t1 t2,
-t1 -->* t2 -> tsucc t1 -->* tsucc t2 /\ tpred t1 -->* tpred t2 /\ tiszero t1 -->* tiszero t2.
+t1 -w->* t2 -> tsucc t1 -w->* tsucc t2 /\ tpred t1 -w->* tpred t2 /\ tiszero t1 -w->* tiszero t2.
 Proof.
 intros. split.
 - induction H.
@@ -240,7 +340,7 @@ intros. split.
 Qed.
 
 Lemma meval_subterm_if : forall t1 t1' t2 t3,
-t1 -->* t1' -> tif t1 t2 t3 -->* tif t1' t2 t3.
+t1 -w->* t1' -> tif t1 t2 t3 -w->* tif t1' t2 t3.
 Proof.
 intros. induction H.
 - apply ME_Eval. apply E_If. apply H.
@@ -263,7 +363,7 @@ match t with
 end.
 
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
-stuck t <-> (conv t) --> twrong.
+stuck t <-> (conv t) -w-> twrong.
 intros. split; intro.
 - induction t.
   + inversion H. unfold not in H1.
