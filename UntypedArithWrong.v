@@ -113,15 +113,6 @@ intros. destruct t.
 - inversion H; subst. apply H1.
 Qed.
 
-Lemma value_is_disjoint : forall t,
-~ (nv t /\ bv t /\ t = twrong).
-Proof.
-unfold not. intros.
-destruct H.
-inversion H; subst. destruct H0. inversion H1.
-destruct H0. inversion H0.
-Qed.
-
 Lemma badnat_is_nf : forall t,
 badnat t -> normal_form eval t.
 Proof.
@@ -287,7 +278,8 @@ unfold transitive. intros.
 induction H.
 - apply ME'_OneMany with (t1 := t1) in H0. apply H0. apply H.
 - apply H0.
-- apply IHmeval' in H0. apply ME'_OneMany with (t1 := t1) in H0.
+- apply IHmeval' in H0.
+  apply ME'_OneMany with (t1 := t1) in H0.
   apply H0. apply H.
 Qed.
 
@@ -298,11 +290,15 @@ intros. split.
 - intros. induction H.
   + apply ME_Eval in H. apply H.
   + apply ME_Refl.
-  + apply ME_Eval in H. apply ME_Trans with (t1 := t1) in IHmeval'. apply IHmeval'. apply H.
+  + apply ME_Eval in H.
+    apply ME_Trans with (t1 := t1) in IHmeval'.
+    apply IHmeval'. apply H.
 - intros. induction H; subst.
   + apply ME'_Eval in H. apply H.
   + apply ME'_Refl.
-  + apply meval'_transitive with (y := t2). apply IHmeval1. apply IHmeval2.
+  + apply meval'_transitive with (y := t2).
+    apply IHmeval1.
+    apply IHmeval2.
 Qed.
 
 (* 3.5.11 *)
@@ -321,8 +317,10 @@ induction H.
     * apply eval_deterministic with (t' := t2) in H0.
       rewrite <- H0 in H3.
       destruct H1. exists t3. apply H3. apply H.
-    * apply eval_deterministic with (t' := t0) in H. symmetry. apply H. apply H0.
-    * apply eval_deterministic with (t' := t0) in H. rewrite <- H in H1.
+    * apply eval_deterministic with (t' := t0) in H.
+      symmetry. apply H. apply H0.
+    * apply eval_deterministic with (t' := t0) in H.
+      rewrite <- H in H1.
       destruct H1. exists t3. apply H3. apply H0.
 - induction H0.
   + destruct H1. exists t2. apply H.
@@ -330,7 +328,8 @@ induction H.
   + destruct H1. exists t2. apply H.
 - induction H0.
   + apply eval_deterministic with (t' := t2) in H0.
-    rewrite -> H0 in IHmeval'. destruct IHmeval'. apply ME'_Refl. apply H1. reflexivity. apply H.
+    rewrite -> H0 in IHmeval'. destruct IHmeval'.
+    apply ME'_Refl. apply H1. reflexivity. apply H.
   + destruct H2. exists t2. apply H.
   + apply eval_deterministic with (t' := t2) in H0.
     rewrite -> H0 in IHmeval'. destruct IHmeval'.
@@ -344,16 +343,19 @@ intros. split.
 - induction H.
   + apply ME_Eval. apply E_Succ. apply H.
   + apply ME_Refl.
-  + apply ME_Trans with (t1 := tsucc t1) in IHmeval2. apply IHmeval2. apply IHmeval1.
+  + apply ME_Trans with (t1 := tsucc t1) in IHmeval2.
+    apply IHmeval2. apply IHmeval1.
 - split.
   + induction H.
     * apply ME_Eval. apply E_Pred. apply H.
     * apply ME_Refl.
-    * apply ME_Trans with (t1 := tpred t1) in IHmeval2. apply IHmeval2. apply IHmeval1.
+    * apply ME_Trans with (t1 := tpred t1) in IHmeval2.
+      apply IHmeval2. apply IHmeval1.
   + induction H.
     * apply ME_Eval. apply E_IsZero. apply H.
     * apply ME_Refl.
-    * apply ME_Trans with (t2 := tiszero t2). apply IHmeval1. apply IHmeval2.
+    * apply ME_Trans with (t2 := tiszero t2).
+      apply IHmeval1. apply IHmeval2.
 Qed.
 
 Lemma meval_subterm_if : forall t1 t1' t2 t3,
@@ -365,8 +367,6 @@ intros. induction H.
 - apply ME_Trans with (t2 := tif t0 t2 t3).
   apply IHmeval1. apply IHmeval2.
 Qed.
-
-
 
 Fixpoint conv (t : UntypedArith.term) : term :=
 match t with
