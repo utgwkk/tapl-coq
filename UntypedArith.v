@@ -153,9 +153,6 @@ Inductive meval' : term -> term -> Prop :=
 eval t1 t2 -> meval' t2 t3 -> meval' t1 t3
 .
 
-Definition transitive {X:Type} (R:relation X) : Prop :=
-forall x y z, R x y -> R y z -> R x z.
-
 Notation "t1 ~~>* t2" := (meval' t1 t2) (at level 60).
 
 Lemma meval'_transitive : transitive meval'.
@@ -309,8 +306,12 @@ intros. induction t.
     destruct H0. destruct H1. apply H1.
   + exists x. split.
     intro. destruct H1. destruct H.
-    exists (tsucc x0). apply E_Succ. assumption.
+    exists (tsucc x0).
+    apply E_Succ. assumption.
+    apply meval_subterm_num in H0.
+    destruct H0. destruct H1.
     Abort.
+    
 
 Definition stuck t := normal_form eval t /\ ~ (nv t \/ bv t).
 
