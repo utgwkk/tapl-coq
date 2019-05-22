@@ -488,17 +488,12 @@ induction H.
 Qed.
 
 Theorem go_wrong_if_stuck : forall t t',
-stuck t' -> conv t' = t -> t -w-> twrong.
+normal_form UntypedArith.eval t' ->
+stuck t' -> conv t' = t -> t -w->* twrong.
 Proof.
-intros.
-induction t'.
-- destruct H.
-  destruct H1. left. apply UntypedArith.NV_Zero.
-- destruct H.
-  destruct H1. right. apply UntypedArith.BV_True.
-- destruct H.
-  destruct H1. right. apply UntypedArith.BV_False.
-- destruct H. Abort.
+  intros.
+  destruct H0.
+  subst.
 
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
 stuck t <-> (conv t) -w->* twrong.
