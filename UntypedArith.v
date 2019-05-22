@@ -783,8 +783,17 @@ value v -> t -->* v -> t ==> v.
 Proof.
 intros.
 apply meval_iff_meval' in H0.
-induction H0.
-- apply eval_value_big_eval.
-  assumption. assumption.
-- apply B_Value. assumption.
+induction t.
+- inversion H0; subst.
+  + inversion H1.
+  + apply B_Value. assumption.
+  + inversion H1.
+- inversion H0; subst.
+  + inversion H1.
+  + apply B_Value. assumption.
+  + inversion H1.
+- inversion H0; subst.
+  + inversion H1.
+  + apply B_Value. assumption.
+  + inversion H1.
 - Abort.

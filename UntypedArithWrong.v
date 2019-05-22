@@ -142,7 +142,8 @@ Qed.
 
 (* 3.5.4, 3.5.14 *)
 Theorem eval_deterministic :
-forall t t' t'', t -w-> t' -> t -w-> t'' -> t' = t''.
+  forall t t' t'',
+  t -w-> t' -> t -w-> t'' -> t' = t''.
 Proof.
 intros.
 generalize dependent t''.
@@ -158,14 +159,16 @@ induction H; intros.
 - inversion H0; subst.
   + inversion H.
   + inversion H.
-  + apply IHeval in H5. rewrite -> H5. reflexivity.
+  + apply IHeval in H5. rewrite -> H5.
+    reflexivity.
   + inversion H5; subst.
     inversion H1; subst.
     inversion H. apply nv_is_nf in H1.
     destruct H1. exists t1'. apply H.
     inversion H.
 - inversion H0; subst.
-  + apply IHeval in H2. rewrite -> H2. reflexivity.
+  + apply IHeval in H2. rewrite -> H2.
+    reflexivity.
   + inversion H2; subst.
     inversion H1; subst; inversion H.
     inversion H.
@@ -186,18 +189,27 @@ induction H; intros.
 - inversion H0; subst.
   + inversion H.
   + inversion H; subst.
-    apply nv_is_nf in H2. destruct H2.
+    apply nv_is_nf in H2.
+    destruct H2.
     exists t1'0. apply H3.
-    inversion H3; subst. inversion H1; subst.
-    inversion H2. inversion H2. inversion H2.
-  + apply IHeval in H2. rewrite -> H2. reflexivity.
+    inversion H3; subst.
+    inversion H1; subst.
+    inversion H2.
+    inversion H2.
+    inversion H2.
+  + apply IHeval in H2.
+    rewrite -> H2.
+    reflexivity.
   + inversion H2; subst.
     inversion H1; subst.
-    inversion H. inversion H. inversion H.
+    inversion H.
+    inversion H.
+    inversion H.
 - inversion H0; subst.
   + reflexivity.
   + inversion H1.
-  + inversion H1; subst. inversion H.
+  + inversion H1; subst.
+    inversion H.
 - inversion H0; subst.
   + reflexivity.
   + apply NV_Succ in H.
@@ -209,38 +221,50 @@ induction H; intros.
 - inversion H0; subst.
   + inversion H.
   + apply NV_Succ in H2.
-    apply nv_is_nf in H2. destruct H2.
+    apply nv_is_nf in H2.
+    destruct H2.
     exists t1'. apply H.
-  + apply IHeval in H2. rewrite -> H2. reflexivity.
+  + apply IHeval in H2.
+    rewrite -> H2.
+    reflexivity.
   + apply badnat_is_nf in H2.
     destruct H2.
     exists t1'. apply H.
 - inversion H0; subst.
-  + inversion H; subst. inversion H1.
-  + inversion H; subst. inversion H1.
-  + apply badbool_is_nf in H. destruct H.
+  + inversion H; subst.
+    inversion H1.
+  + inversion H; subst.
+    inversion H1.
+  + apply badbool_is_nf in H.
+    destruct H.
     exists t1'. apply H5.
   + reflexivity.
 - inversion H0; subst.
-  + apply badnat_is_nf in H. destruct H.
+  + apply badnat_is_nf in H.
+    destruct H.
+    exists t1'. apply H2.
+  + reflexivity.
+- inversion H0; subst.
+  + inversion H.
+    inversion H1.
+  + inversion H; subst.
+    inversion H1.
+  + apply badnat_is_nf in H.
+    destruct H.
     exists t1'. apply H2.
   + reflexivity.
 - inversion H0; subst.
   + inversion H. inversion H1.
-  + inversion H; subst. inversion H1.
-  + apply badnat_is_nf in H. destruct H.
-    exists t1'. apply H2.
-  + reflexivity.
-- inversion H0; subst.
   + inversion H. inversion H1.
-  + inversion H. inversion H1.
-  + apply badnat_is_nf in H. destruct H.
+  + apply badnat_is_nf in H.
+    destruct H.
     exists t1'. apply H2.
   + reflexivity.
 Qed.
 
 Inductive meval : term -> term -> Prop :=
-| ME_Eval : forall t1 t2, eval t1 t2 -> meval t1 t2
+| ME_Eval : forall t1 t2,
+eval t1 t2 -> meval t1 t2
 | ME_Refl : forall t1, meval t1 t1
 | ME_Trans : forall t1 t2 t3,
 meval t1 t2 -> meval t2 t3 -> meval t1 t3
