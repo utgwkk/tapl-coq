@@ -159,10 +159,14 @@ Lemma meval'_transitive : transitive meval'.
 Proof.
 unfold transitive. intros.
 induction H.
-- apply ME'_OneMany with (t1 := t1) in H0. apply H0. apply H.
+- apply ME'_OneMany with (t1 := t1) in H0.
+  apply H0.
+  apply H.
 - apply H0.
-- apply IHmeval' in H0. apply ME'_OneMany with (t1 := t1) in H0.
-  apply H0. apply H.
+- apply IHmeval' in H0.
+  apply ME'_OneMany with (t1 := t1) in H0.
+  apply H0.
+  apply H.
 Qed.
 
 Lemma meval_iff_meval' : forall t1 t2,
@@ -170,13 +174,19 @@ t1 ~~>* t2 <-> t1 -->* t2.
 Proof.
 intros. split.
 - intros. induction H.
-  + apply ME_Eval in H. apply H.
+  + apply ME_Eval in H.
+    apply H.
   + apply ME_Refl.
-  + apply ME_Eval in H. apply ME_Trans with (t1 := t1) in IHmeval'. apply IHmeval'. apply H.
+  + apply ME_Eval in H.
+    apply ME_Trans with (t1 := t1) in IHmeval'.
+    apply IHmeval'.
+    apply H.
 - intros. induction H; subst.
-  + apply ME'_Eval in H. apply H.
+  + apply ME'_Eval in H.
+    apply H.
   + apply ME'_Refl.
-  + apply meval'_transitive with (y := t2). apply IHmeval1. apply IHmeval2.
+  + apply meval'_transitive with (y := t2).
+    apply IHmeval1. apply IHmeval2.
 Qed.
 
 (* 3.5.11 *)
@@ -194,9 +204,12 @@ induction H.
   + induction H3.
     * apply eval_deterministic with (t' := t2) in H0.
       rewrite <- H0 in H3.
-      destruct H1. exists t3. apply H3. apply H.
-    * apply eval_deterministic with (t' := t0) in H. symmetry. apply H. apply H0.
-    * apply eval_deterministic with (t' := t0) in H. rewrite <- H in H1.
+      destruct H1. exists t3.
+      apply H3. apply H.
+    * apply eval_deterministic with (t' := t0) in H.
+      symmetry. apply H. apply H0.
+    * apply eval_deterministic with (t' := t0) in H.
+      rewrite <- H in H1.
       destruct H1. exists t3. apply H3. apply H0.
 - induction H0.
   + destruct H1. exists t2. apply H.
@@ -204,7 +217,12 @@ induction H.
   + destruct H1. exists t2. apply H.
 - induction H0.
   + apply eval_deterministic with (t' := t2) in H0.
-    rewrite -> H0 in IHmeval'. destruct IHmeval'. apply ME'_Refl. apply H1. reflexivity. apply H.
+    rewrite -> H0 in IHmeval'.
+    destruct IHmeval'.
+    apply ME'_Refl.
+    apply H1.
+    reflexivity.
+    apply H.
   + destruct H2. exists t2. apply H.
   + apply eval_deterministic with (t' := t2) in H0.
     rewrite -> H0 in IHmeval'. destruct IHmeval'.
