@@ -59,11 +59,64 @@ Qed.
 
 Lemma well_typed_subterm_pred :
 forall t, well_typed (tpred t) -> well_typed t.
-Proof. Admitted.
+intros.
+induction t.
+- exists tnat.
+  apply T_Zero.
+- exists tbool.
+  apply T_True.
+- exists tbool.
+  apply T_False.
+- exists tnat.
+  apply T_Succ.
+  inversion H.
+  inversion H0; subst.
+  inversion H2; subst.
+  apply H3.
+- exists tnat.
+  apply T_Pred.
+  inversion H.
+  inversion H0; subst.
+  inversion H2; subst.
+  apply H3.
+- inversion H.
+  inversion H0; subst.
+  inversion H2.
+- inversion H; subst.
+  inversion H0; subst.
+  exists tnat.
+  apply H2.
+Qed.
 
 Lemma well_typed_subterm_iszero :
 forall t, well_typed (tiszero t) -> well_typed t.
-Proof. Admitted.
+Proof.
+intros.
+induction t.
+- exists tnat.
+  apply T_Zero.
+- exists tbool.
+  apply T_True.
+- exists tbool.
+  apply T_False.
+- exists tnat.
+  apply T_Succ.
+  inversion H.
+  inversion H0; subst.
+  inversion H2; subst.
+  apply H3.
+- exists tnat.
+  inversion H.
+  inversion H0; subst.
+  apply H2.
+- inversion H.
+  inversion H0; subst.
+  inversion H2.
+- inversion H.
+  inversion H0; subst.
+  exists tnat.
+  apply H2.
+Qed.
 
 Lemma well_typed_subterm_if :
 forall t1 t2 t3,
