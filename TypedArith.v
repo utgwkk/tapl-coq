@@ -335,3 +335,142 @@ intro.
 inversion H1; subst.
 inversion H8.
 Qed.
+
+Lemma nv_is_tnat : forall t,
+nv t -> t |- tnat.
+Proof.
+intros.
+induction H.
+- apply T_Zero.
+- apply T_Succ.
+  apply IHnv.
+Qed.
+
+Lemma bv_is_tbool : forall t,
+bv t -> t |- tbool.
+Proof.
+intros.
+induction H.
+- apply T_True.
+- apply T_False.
+Qed.
+
+(* Exercise 8.3.7 *)
+Theorem preserve_big_eval :
+forall t v ty,
+t |- ty -> t ==> v -> v |- ty.
+Proof.
+intros.
+induction H0.
+- apply H.
+- inversion H; subst.
+  apply IHbig_eval2.
+  assumption.
+- inversion H; subst.
+  apply IHbig_eval2.
+  assumption.
+- inversion H; subst.
+  apply T_Succ.
+  apply IHbig_eval.
+  assumption.
+- inversion H; subst.
+  apply T_Zero.
+- inversion H; subst.
+  apply nv_is_tnat.
+  apply H0.
+- inversion H; subst.
+  apply T_True.
+- inversion H; subst.
+  apply T_False.
+Qed.
+
+Theorem progress_big_eval :
+forall t,
+well_typed t -> exists v, t ==> v.
+Proof.
+intros.
+destruct H.
+induction H.
+- exists ttrue.
+  apply B_Value.
+  right.
+  apply BV_True.
+- exists tfalse.
+  apply B_Value.
+  right.
+  apply BV_False.
+- destruct IHtyped1.
+  assert (t1 ==> x). assumption.
+  apply big_eval_to_value in H2.
+  destruct H2.
+  + apply preserve_big_eval with (v := x) in H.
+    inversion H2; subst; inversion H.
+    apply H3.
+  + destruct H2.
+    * destruct IHtyped2.
+      exists x.
+      apply B_IfTrue.
+      apply big_eval_to_value in H2.
+      apply H2.
+      apply H3.
+      apply H2.
+    * destruct IHtyped3.
+      exists x.
+      apply B_IfFalse.
+      apply big_eval_to_value in H2.
+      apply H2.
+      apply H3.
+      apply H2.
+- exists tzero.
+  apply B_Value.
+  left.
+  apply NV_Zero.
+- destruct IHtyped.
+  exists (tsucc x).
+  assert (t1 ==> x). assumption.
+  apply preserve_big_eval with (ty := tnat) in H1.
+  + apply B_Succ.
+    apply big_eval_to_value in H0.
+    inversion H0.
+    * assumption.
+    * inversion H2; subst; inversion H1.
+    * assumption.
+  + assumption.
+- destruct IHtyped.
+  assert (t1 ==> x). assumption.
+  apply big_eval_to_value in H1.
+  inversion H1.
+  + inversion H2; subst.
+    * exists tzero.
+      apply B_PredZero.
+      assumption.
+    * exists t.
+      apply B_PredSucc;
+      assumption.
+  + destruct H2.
+    * apply preserve_big_eval with (v := ttrue) in H.
+      inversion H.
+      apply H0.
+    * apply preserve_big_eval with (v := tfalse) in H.
+      inversion H.
+      apply H0.
+- destruct IHtyped.
+  assert (t1 ==> x). assumption.
+  apply big_eval_to_value in H1.
+  inversion H1.
+  + inversion H2; subst.
+    * exists ttrue.
+      apply B_IsZeroZero.
+      assumption.
+    * exists tfalse.
+      eapply B_IsZeroSucc.
+      apply H3.
+      assumption.
+  + destruct H2.
+    * apply preserve_big_eval with (v := ttrue) in H.
+      inversion H.
+      assumption.
+    * apply preserve_big_eval with (v := tfalse) in H.
+      inversion H.
+      assumption.
+Qed.
