@@ -27,6 +27,7 @@ Notation "t |- ty" := (typed t ty) (at level 50).
 Definition well_typed t :=
 exists ty, t |- ty.
 
+(* 8.2.3 Exercise *)
 Lemma well_typed_subterm_succ :
 forall t, well_typed (tsucc t) -> well_typed t.
 Proof.
@@ -56,7 +57,6 @@ induction t.
   apply H2.
 Qed.
 
-(* 8.2.3 Exercise *)
 Lemma well_typed_subterm_pred :
 forall t, well_typed (tpred t) -> well_typed t.
 Proof. Admitted.
