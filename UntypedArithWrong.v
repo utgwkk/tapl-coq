@@ -494,6 +494,7 @@ Proof.
   intros.
   destruct H0.
   subst.
+  Abort.
 
 Theorem stuck_iff_go_wrong : forall (t :UntypedArith.term),
 stuck t <-> (conv t) -w->* twrong.
