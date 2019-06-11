@@ -32,90 +32,29 @@ Lemma well_typed_subterm_succ :
 forall t, well_typed (tsucc t) -> well_typed t.
 Proof.
 intros.
-induction t.
-- exists tnat.
-  apply T_Zero.
-- exists tbool.
-  apply T_True.
-- exists tbool.
-  apply T_False.
-- exists tnat.
-  inversion H.
-  inversion H0; subst.
-  assumption.
-- exists tnat.
-  inversion H.
-  inversion H0; subst.
-  assumption.
-- exists tbool.
-  inversion H.
-  inversion H0; subst.
-  inversion H2.
-- inversion H.
-  exists x.
-  inversion H0; subst.
-  apply H2.
+inversion H.
+inversion H0; subst.
+exists tnat.
+assumption.
 Qed.
 
 Lemma well_typed_subterm_pred :
 forall t, well_typed (tpred t) -> well_typed t.
 intros.
-induction t.
-- exists tnat.
-  apply T_Zero.
-- exists tbool.
-  apply T_True.
-- exists tbool.
-  apply T_False.
-- exists tnat.
-  apply T_Succ.
-  inversion H.
-  inversion H0; subst.
-  inversion H2; subst.
-  apply H3.
-- exists tnat.
-  apply T_Pred.
-  inversion H.
-  inversion H0; subst.
-  inversion H2; subst.
-  apply H3.
-- inversion H.
-  inversion H0; subst.
-  inversion H2.
-- inversion H; subst.
-  inversion H0; subst.
-  exists tnat.
-  apply H2.
+inversion H.
+inversion H0; subst.
+exists tnat.
+assumption.
 Qed.
 
 Lemma well_typed_subterm_iszero :
 forall t, well_typed (tiszero t) -> well_typed t.
 Proof.
 intros.
-induction t.
-- exists tnat.
-  apply T_Zero.
-- exists tbool.
-  apply T_True.
-- exists tbool.
-  apply T_False.
-- exists tnat.
-  apply T_Succ.
-  inversion H.
-  inversion H0; subst.
-  inversion H2; subst.
-  apply H3.
-- exists tnat.
-  inversion H.
-  inversion H0; subst.
-  apply H2.
-- inversion H.
-  inversion H0; subst.
-  inversion H2.
-- inversion H.
-  inversion H0; subst.
-  exists tnat.
-  apply H2.
+inversion H.
+inversion H0; subst.
+exists tnat.
+assumption.
 Qed.
 
 Lemma well_typed_subterm_if :
