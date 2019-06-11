@@ -413,3 +413,119 @@ induction H.
       inversion H.
       assumption.
 Qed.
+
+(* Exercise 8.3.8 *)
+Module TypedArithWrong.
+Require Export UntypedArithWrong.
+Inductive ty :=
+| Tbool : ty
+| Tnat : ty
+| Twrong : ty
+.
+
+Inductive typed : term -> ty -> Prop :=
+| T_True : typed ttrue Tbool
+| T_False : typed tfalse Tbool
+| T_Wrong : typed twrong Twrong
+| T_If :
+forall t1 t2 t3 ty1,
+typed t1 Tbool -> typed t2 ty1 -> typed t3 ty1
+-> typed (tif t1 t2 t3) ty1
+| T_IfNat :
+forall t1 t2 t3,
+typed t1 Tnat -> typed (tif t1 t2 t3) Twrong
+| T_IfWrong :
+forall t1 t2 t3,
+typed t1 Twrong -> typed (tif t1 t2 t3) Twrong
+| T_IfNotSameType :
+forall t1 t2 t3 ty1 ty2,
+typed t1 Tbool -> typed t2 ty1 -> typed t3 ty2
+-> ty1 <> ty2 -> typed (tif t1 t2 t3) Twrong
+| T_Zero : typed tzero Tnat
+| T_Succ : forall t1,
+typed t1 Tnat -> typed (tsucc t1) Tnat
+| T_SuccBool : forall t1,
+typed t1 Tbool -> typed (tsucc t1) Twrong
+| T_SuccWrong: forall t1,
+typed t1 Twrong -> typed (tsucc t1) Twrong
+| T_Pred : forall t1,
+typed t1 Tnat -> typed (tpred t1) Tnat
+| T_PredBool : forall t1,
+typed t1 Tbool -> typed (tpred t1) Twrong
+| T_PredWrong : forall t1,
+typed t1 Twrong -> typed (tpred t1) Twrong
+| T_IsZero : forall t1,
+typed t1 Tnat -> typed (tiszero t1) Tbool
+| T_IsZeroBool : forall t1,
+typed t1 Tbool -> typed (tiszero t1) Twrong
+| T_IsZeroWrong : forall t1,
+typed t1 Twrong -> typed (tiszero t1) Twrong
+.
+
+Notation "t |- ty" := (typed t ty) (at level 50).
+
+Definition well_typed t :=
+exists ty, t |- ty.
+
+Theorem progress_reduction :
+forall t, well_typed t ->
+value t \/ exists t', t -w-> t'.
+Proof.
+intros.
+destruct H.
+induction H.
+- left.
+  right.
+  left.
+  apply BV_True.
+- left.
+  right.
+  left.
+  apply BV_False.
+- left.
+  right.
+  right.
+  reflexivity.
+Abort.
+
+Theorem preserve_type :
+forall t T t',
+t |- T -> t -w-> t' -> t' |- T.
+Proof.
+intros.
+generalize dependent t'.
+induction H; intros.
+- inversion H0.
+- inversion H0.
+- inversion H0.
+- inversion H2; subst.
+  + assumption.
+  + assumption.
+  + apply T_If.
+    * apply IHtyped1.
+      assumption.
+    * assumption.
+    * assumption.
+  + inversion H7; subst.
+    * inversion H3; subst.
+      inversion H.
+      inversion H.
+    * inversion H.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H.
+  + apply T_IfNat.
+    apply IHtyped.
+    assumption.
+  + apply T_Wrong.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H.
+  + apply T_IfWrong.
+    apply IHtyped.
+    assumption.
+  + apply T_Wrong.
+- inversion H3; subst.
+  + Abort.
+
+End TypedArithWrong.
