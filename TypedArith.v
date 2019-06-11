@@ -437,10 +437,6 @@ typed t1 Tnat -> typed (tif t1 t2 t3) Twrong
 | T_IfWrong :
 forall t1 t2 t3,
 typed t1 Twrong -> typed (tif t1 t2 t3) Twrong
-| T_IfNotSameType :
-forall t1 t2 t3 ty1 ty2,
-typed t1 Tbool -> typed t2 ty1 -> typed t3 ty2
--> ty1 <> ty2 -> typed (tif t1 t2 t3) Twrong
 | T_Zero : typed tzero Tnat
 | T_Succ : forall t1,
 typed t1 Tnat -> typed (tsucc t1) Tnat
@@ -525,7 +521,51 @@ induction H; intros.
     apply IHtyped.
     assumption.
   + apply T_Wrong.
-- inversion H3; subst.
-  + Abort.
+- inversion H0.
+- inversion H0; subst.
+  + apply T_Succ.
+    apply IHtyped.
+    assumption.
+  + inversion H2; subst.
+    * inversion H1; subst; inversion H.
+    * assumption.
+- inversion H0; subst.
+  + apply T_SuccBool.
+    apply IHtyped.
+    assumption.
+  + apply T_Wrong.
+- inversion H0; subst.
+  + apply T_SuccWrong.
+    apply IHtyped.
+    assumption.
+  + apply T_Wrong.
+- inversion H0; subst.
+  + apply T_Zero.
+  + inversion H2; subst.
+    * apply T_Zero.
+    * inversion H; subst.
+      assumption.
+  + apply T_Pred.
+    apply IHtyped.
+    assumption.
+  + inversion H2; subst.
+    * inversion H1;
+      subst;
+      inversion H.
+    * assumption.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H.
+  + apply T_PredBool.
+    apply IHtyped.
+    assumption.
+  + apply T_Wrong.
+- inversion H0; subst.
+  + inversion H.
+  + inversion H2; subst.
+    * inversion H; subst.
+      inversion H3.
+      assumption.
+    * Abort.
 
 End TypedArithWrong.
