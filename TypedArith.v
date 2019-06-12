@@ -332,6 +332,18 @@ split.
     inversion H6.
 Qed.
 
+Theorem subject_expansion_counterex' :
+~ (forall t t' T, t --> t' -> t' |- T -> t |- T).
+Proof.
+intro.
+assert (tif ttrue tzero tfalse --> tzero).
+apply E_IfTrue.
+apply H with (T := Tnat) in H0.
+- inversion H0; subst.
+  inversion H7.
+- apply T_Zero.
+Qed.
+
 (* Exercise 8.3.7 *)
 Theorem preserve_big_eval :
 forall t v T,
