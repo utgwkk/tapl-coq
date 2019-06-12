@@ -493,6 +493,38 @@ Notation "t |- T" := (typed t T) (at level 50).
 Definition well_typed t :=
 exists T, t |- T.
 
+Theorem uniq_types :
+forall t T1 T2,
+t |- T1 -> t |- T2 -> T1 = T2.
+Proof.
+intros t.
+induction t; intros.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  reflexivity.
+- inversion H; subst.
+  inversion H0; subst.
+  apply IHt2.
+  assumption.
+  assumption.
+- inversion H.
+Qed.
+
 (* Lemma 8.3.1 *)
 Lemma bool_value_is_true_or_false :
 forall v,
