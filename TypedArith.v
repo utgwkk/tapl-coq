@@ -470,48 +470,79 @@ Require Export UntypedArithWrong.
 Inductive ty :=
 | Tbool : ty
 | Tnat : ty
-| Twrong : ty
 .
 
 Inductive typed : term -> ty -> Prop :=
 | T_True : typed ttrue Tbool
 | T_False : typed tfalse Tbool
-| T_Wrong : typed twrong Twrong
 | T_If :
 forall t1 t2 t3 T,
 typed t1 Tbool -> typed t2 T -> typed t3 T
 -> typed (tif t1 t2 t3) T
-| T_IfNat :
-forall t1 t2 t3,
-typed t1 Tnat -> typed (tif t1 t2 t3) Twrong
-| T_IfWrong :
-forall t1 t2 t3,
-typed t1 Twrong -> typed (tif t1 t2 t3) Twrong
 | T_Zero : typed tzero Tnat
 | T_Succ : forall t1,
 typed t1 Tnat -> typed (tsucc t1) Tnat
-| T_SuccBool : forall t1,
-typed t1 Tbool -> typed (tsucc t1) Twrong
-| T_SuccWrong: forall t1,
-typed t1 Twrong -> typed (tsucc t1) Twrong
 | T_Pred : forall t1,
 typed t1 Tnat -> typed (tpred t1) Tnat
-| T_PredBool : forall t1,
-typed t1 Tbool -> typed (tpred t1) Twrong
-| T_PredWrong : forall t1,
-typed t1 Twrong -> typed (tpred t1) Twrong
 | T_IsZero : forall t1,
 typed t1 Tnat -> typed (tiszero t1) Tbool
-| T_IsZeroBool : forall t1,
-typed t1 Tbool -> typed (tiszero t1) Twrong
-| T_IsZeroWrong : forall t1,
-typed t1 Twrong -> typed (tiszero t1) Twrong
 .
 
 Notation "t |- T" := (typed t T) (at level 50).
 
 Definition well_typed t :=
 exists T, t |- T.
+
+(* Lemma 8.3.1 *)
+Lemma bool_value_is_true_or_false :
+forall v,
+value v -> v |- Tbool -> v = ttrue \/ v = tfalse.
+Proof.
+intros.
+destruct H.
+- inversion H; subst.
+  + inversion H0.
+  + inversion H0.
+- destruct H.
+  + destruct H.
+    left.
+    reflexivity.
+    right.
+    reflexivity.
+  + subst.
+    inversion H0.
+Qed.
+
+Lemma nat_value_is_zero_or_succ_nv :
+forall v,
+value v -> v |- Tnat ->
+v = tzero \/ exists n, nv n /\ v = tsucc n.
+Proof.
+intros.
+inversion H0; subst.
+- inversion H.
+  inversion H4.
+  destruct H4.
+  inversion H4.
+  inversion H4.
+- left.
+  reflexivity.
+- right.
+  destruct H.
+  + exists t1.
+    split.
+    inversion H; subst.
+    assumption.
+    reflexivity.
+  + destruct H.
+    inversion H.
+    inversion H.
+- inversion H.
+  inversion H2.
+  destruct H2.
+  inversion H2.
+  inversion H2.
+Qed.
 
 Theorem progress_reduction :
 forall t, well_typed t ->
@@ -528,236 +559,77 @@ induction H.
   right.
   left.
   apply BV_False.
-- left.
-  right.
-  right.
-  reflexivity.
 - right.
   destruct IHtyped1.
-  + destruct H2.
-    * inversion H2; subst.
-      inversion H.
-      inversion H.
-    * destruct H2.
-      destruct H2.
-      exists t2.
-      apply E_IfTrue.
-      exists t3.
-      apply E_IfFalse.
-      subst.
-      exists twrong.
-      apply E_IfWrong.
-      apply BB_Wrong.
-  + destruct H2.
-    exists (tif x t2 t3).
-    apply E_If.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    * exists twrong.
-      apply E_IfWrong.
-      apply BB_Nat.
-      assumption.
-    * destruct H0.
-      destruct H0.
-      exists t2.
-      apply E_IfTrue.
-      exists t3.
-      apply E_IfFalse.
-      subst.
-      inversion H.
-  + destruct H0.
-    exists (tif x t2 t3).
-    apply E_If.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    * exists twrong.
-      apply E_IfWrong.
-      apply BB_Nat.
-      assumption.
-    * destruct H0.
-      destruct H0.
-      inversion H.
-      inversion H.
-      subst.
-      exists twrong.
-      apply E_IfWrong.
-      apply BB_Wrong.
-  + destruct H0.
-    exists (tif x t2 t3).
+  apply bool_value_is_true_or_false in H2.
+  destruct H2; subst.
+  + exists t2.
+    apply E_IfTrue.
+  + exists t3.
+    apply E_IfFalse.
+  + assumption.
+  + destruct H2 as [t1'].
+    exists (tif t1' t2 t3).
     apply E_If.
     assumption.
 - left.
   left.
   apply NV_Zero.
 - destruct IHtyped.
-  + destruct H0.
-    * left.
+  + apply nat_value_is_zero_or_succ_nv in H0.
+    destruct H0.
+    * subst.
+      left.
       left.
       apply NV_Succ.
-      assumption.
-    * destruct H0.
-      right.
-      exists twrong.
-      apply E_SuccWrong.
-      apply BN_Bool.
-      assumption.
+      apply NV_Zero.
+    * destruct H0 as [n].
+      destruct H0.
       subst.
-      inversion H.
-  + destruct H0.
-    right.
-    exists (tsucc x).
-    apply E_Succ.
-    assumption.
-- destruct IHtyped.
-  + destruct H0.
-    destruct H0.
-    inversion H.
-    inversion H.
-    destruct H0.
-    * right.
-      exists twrong.
-      apply E_SuccWrong.
-      apply BN_Bool.
+      left.
+      left.
+      apply NV_Succ.
+      apply NV_Succ.
       assumption.
-    * subst.
-      inversion H.
-  + destruct H0.
+    * assumption.
+  + destruct H0 as [t1'].
     right.
-    exists (tsucc x).
-    apply E_Succ.
-    assumption.
-- destruct IHtyped.
-  + destruct H0.
-    left.
-    left.
-    apply NV_Succ.
-    assumption.
-    destruct H0.
-    * destruct H0.
-      inversion H.
-      inversion H.
-    * subst.
-      right.
-      exists twrong.
-      apply E_SuccWrong.
-      apply BN_Wrong.
-  + right.
-    destruct H0.
-    exists (tsucc x).
+    exists (tsucc t1').
     apply E_Succ.
     assumption.
 - right.
   destruct IHtyped.
-  + destruct H0.
-    destruct H0.
-    exists tzero.
-    apply E_PredZero.
-    exists t.
-    apply E_PredSucc.
-    assumption.
-    destruct H0.
-    * exists twrong.
-      apply E_PredWrong.
-      apply BN_Bool.
-      assumption.
-    * subst.
-      inversion H.
-  + destruct H0.
-    exists (tpred x).
-    apply E_Pred.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    * destruct H0;
-      inversion H.
-    * destruct H0.
-      exists twrong.
-      apply E_PredWrong.
-      apply BN_Bool.
-      assumption.
+  + apply nat_value_is_zero_or_succ_nv in H0.
+    destruct H0; subst.
+    * exists tzero.
+      apply E_PredZero.
+    * destruct H0 as [n].
+      destruct H0.
       subst.
-      inversion H.
-  + destruct H0.
-    exists (tpred x).
+      exists n.
+      apply E_PredSucc.
+      assumption.
+    * assumption.
+  + destruct H0 as [t1'].
+    exists (tpred t1').
     apply E_Pred.
     assumption.
 - right.
   destruct IHtyped.
-  + destruct H0.
+  + apply nat_value_is_zero_or_succ_nv in H0.
     destruct H0.
-    inversion H.
-    exists t.
-    apply E_PredSucc.
-    assumption.
-    destruct H0.
-    * destruct H0;
-      inversion H.
     * subst.
-      exists twrong.
-      apply E_PredWrong.
-      apply BN_Wrong.
-  + destruct H0.
-    exists (tpred x).
-    apply E_Pred.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    destruct H0.
-    * exists ttrue.
+      exists ttrue.
       apply E_IsZeroZero.
-    * exists tfalse.
+    * destruct H0 as [n].
+      destruct H0.
+      subst.
+      exists tfalse.
       apply E_IsZeroSucc.
       assumption.
-    * destruct H0.
-      destruct H0;
-      inversion H.
-      subst.
-      inversion H.
-  + destruct H0.
-    exists (tiszero x).
-    apply E_IsZero.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    * destruct H0;
-      inversion H.
-    * destruct H0.
-      exists twrong.
-      apply E_IsZeroWrong.
-      apply BN_Bool.
-      assumption.
-      subst.
-      inversion H.
-  + destruct H0.
-    exists (tiszero x).
-    apply E_IsZero.
-    assumption.
-- right.
-  destruct IHtyped.
-  + destruct H0.
-    destruct H0.
-    * inversion H.
-    * exists tfalse.
-      apply E_IsZeroSucc.
-      assumption.
-    * destruct H0.
-      exists twrong.
-      apply E_IsZeroWrong.
-      apply BN_Bool.
-      assumption.
-      subst.
-      exists twrong.
-      apply E_IsZeroWrong.
-      apply BN_Wrong.
-  + destruct H0.
-    exists (tiszero x).
+    * assumption.
+  + destruct H0 as [t1'].
+    exists (tiszero t1').
     apply E_IsZero.
     assumption.
 Qed.
@@ -770,127 +642,55 @@ intros.
 generalize dependent T.
 induction H0; intros.
 - inversion H; subst.
+  assumption.
+- inversion H; subst.
+  assumption.
+- inversion H; subst.
+  apply T_If.
+  + apply IHeval.
+    assumption.
   + assumption.
-  + inversion H4.
-  + inversion H4.
-- inversion H; subst.
   + assumption.
-  + inversion H4.
-  + inversion H4.
 - inversion H; subst.
-  + apply IHeval in H4.
-    apply T_If; assumption.
-  + apply T_IfNat.
-    apply IHeval.
-    assumption.
-  + apply T_IfWrong.
-    apply IHeval.
-    assumption.
+  apply T_Succ.
+  apply IHeval.
+  assumption.
 - inversion H; subst.
-  + apply IHeval in H2.
-    apply T_Succ.
-    assumption.
-  + apply T_SuccBool.
-    apply IHeval.
-    assumption.
-  + apply T_SuccWrong.
-    apply IHeval.
-    assumption.
-- inversion H; subst.
-  + apply T_Zero.
-  + inversion H1.
-  + inversion H1.
+  apply T_Zero.
 - inversion H0; subst.
-  + inversion H2; subst.
-    assumption.
-  + inversion H2.
-  + inversion H; subst.
-    inversion H2; subst.
-    inversion H3.
-    assumption.
-    inversion H2; subst.
-    inversion H4.
-    assumption.
+  inversion H2; subst.
+  assumption.
 - inversion H; subst.
-  + apply T_Pred.
-    apply IHeval.
-    assumption.
-  + apply IHeval in H2.
-    apply T_PredBool.
-    assumption.
-  + apply IHeval in H2.
-    apply T_PredWrong.
-    assumption.
+  apply T_Pred.
+  apply IHeval.
+  assumption.
 - inversion H; subst.
-  + apply T_True.
-  + inversion H1.
-  + inversion H1.
+  apply T_True.
 - inversion H0; subst.
-  + apply T_False.
-  + inversion H2.
-  + induction H.
-    * inversion H2.
-      inversion H1.
-      inversion H1.
-    * apply IHnv.
-      inversion H2; subst.
-      apply T_IsZeroBool.
-      assumption.
-      apply T_IsZeroWrong.
-      assumption.
-      inversion H0; subst.
-      inversion H3.
-      inversion H3; subst.
-      inversion H4.
-      assumption.
+  apply T_False.
 - inversion H; subst.
-  + apply T_IsZero.
-    apply IHeval.
-    assumption.
-  + apply T_IsZeroBool.
-    apply IHeval.
-    assumption.
-  + apply T_IsZeroWrong.
-    apply IHeval.
-    assumption.
-- destruct H.
-  + destruct H.
-    * inversion H0; subst.
-      inversion H3.
-      apply T_Wrong.
-      apply T_Wrong.
-    * inversion H0; subst.
-      inversion H4.
-      apply T_Wrong.
-      apply T_Wrong.
-  + inversion H0; subst.
-    * inversion H3.
+  apply T_IsZero.
+  apply IHeval.
+  assumption.
+- inversion H0; subst.
+  inversion H; subst.
+  + destruct H1.
     * inversion H4.
-    * assumption.
+    * inversion H4.
+  + inversion H0; subst.
+    inversion H5.
 - inversion H0; subst.
-  + destruct H.
-    * destruct H.
-      inversion H2.
-      inversion H2.
-    * inversion H2.
-  + apply T_Wrong.
-  + apply T_Wrong.
+  inversion H; subst.
+  + destruct H1; inversion H2.
+  + inversion H2.
 - inversion H0; subst.
-  + destruct H.
-    * destruct H.
-      inversion H2.
-      inversion H2.
-    * inversion H2.
-  + apply T_Wrong.
-  + apply T_Wrong.
+  inversion H; subst.
+  + destruct H1; inversion H2.
+  + inversion H2.
 - inversion H0; subst.
-  + destruct H.
-    * destruct H.
-      inversion H2.
-      inversion H2.
-    * inversion H2.
-  + apply T_Wrong.
-  + apply T_Wrong.
+  inversion H; subst.
+  + destruct H1; inversion H2.
+  + inversion H2.
 Qed.
 
 End TypedArithWrong.
