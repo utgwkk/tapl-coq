@@ -318,15 +318,18 @@ Qed.
 (* Exercise 8.3.6 *)
 Theorem subject_expansion_counterex :
 exists t t' T,
-t --> t' -> t' |- T -> ~ t |- T.
+t --> t' /\ t' |- T /\ ~ t |- T.
 Proof.
 exists (tif ttrue tzero ttrue).
 exists tzero.
 exists Tnat.
-intros.
-intro.
-inversion H1; subst.
-inversion H8.
+split.
+- apply E_IfTrue.
+- split.
+  + apply T_Zero.
+  + intro.
+    inversion H; subst.
+    inversion H6.
 Qed.
 
 (* Exercise 8.3.7 *)
