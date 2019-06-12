@@ -725,4 +725,58 @@ induction H0; intros.
   + inversion H2.
 Qed.
 
+Theorem preserve_type' :
+forall t T t',
+t |- T -> t -w-> t' -> t' |- T.
+Proof.
+intros.
+generalize dependent t'.
+induction H; intros.
+- inversion H0.
+- inversion H0.
+- inversion H2; subst.
+  + assumption.
+  + assumption.
+  + apply T_If.
+    * apply IHtyped1.
+      assumption.
+    * assumption.
+    * assumption.
+  + inversion H7; subst.
+    * inversion H3; subst.
+      inversion H.
+      inversion H.
+    * inversion H.
+- inversion H0.
+- inversion H0; subst.
+  + apply T_Succ.
+    apply IHtyped.
+    assumption.
+  + inversion H2; subst.
+    * destruct H1;
+      inversion H.
+    * inversion H.
+- inversion H0; subst.
+  + apply T_Zero.
+  + inversion H; subst.
+    assumption.
+  + apply T_Pred.
+    apply IHtyped.
+    assumption.
+  + inversion H2; subst.
+    destruct H1;
+    inversion H.
+    inversion H.
+- inversion H0; subst.
+  + apply T_True.
+  + apply T_False.
+  + apply T_IsZero.
+    apply IHtyped.
+    assumption.
+  + inversion H2; subst.
+    * destruct H1;
+      inversion H.
+    * inversion H.
+Qed.
+
 End TypedArithWrong.
